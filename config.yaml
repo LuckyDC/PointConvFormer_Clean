@@ -1,0 +1,11 @@
+name: 'PointConvFormer ScanNet 2cm'
+tags: ['PointConvFormer', 'ScanNet', '2cm']
+command: 'sh setup.sh'
+resources:
+  docker_image: docker.apple.com/turibolt/samples/torch-tf:latest
+  num_gpus: 8
+  num_cpus: 64
+  timeout: 14d
+  disk_gb: 2000
+  memory_gb: 512
+

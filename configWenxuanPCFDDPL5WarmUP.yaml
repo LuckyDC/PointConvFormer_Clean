@@ -76,8 +76,8 @@ warmup:           'linear'
 warmup_iters:     1500
 warmup_ratio:     0.000001
 
-save_to_blobby:  True
-use_tensorboard: False
+save_to_blobby:  False
+use_tensorboard: True
 model_name:      'NewPointConvFormer_2cm'
 experiment_dir:  './guided_experiment_2cm/'
 ft_experiment_dir: './ft_guided_experiment_2cm/'

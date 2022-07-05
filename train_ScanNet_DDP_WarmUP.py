@@ -103,8 +103,8 @@ def main():
             os.makedirs(code_dir)
         os.system('cp %s %s' % (args.config, code_dir))
         os.system('cp %s %s' % (os.path.basename(__file__), code_dir))
-        os.system('cp %s %s' % ('scannet_data_loader_color_2cm_newNormal_DDP.py', code_dir))
-        os.system('cp %s %s' % ('model_architecture_DP.py', code_dir))
+        os.system('cp %s %s' % ('scannet_data_loader_color_DDP.py', code_dir))
+        os.system('cp %s %s' % ('model_architecture.py', code_dir))
 
     print("ignore label: ", args.ignore_label)
 

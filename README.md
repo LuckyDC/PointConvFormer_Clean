@@ -14,7 +14,29 @@ We introduce PointConvFormer, a novel building block for point cloud based deep 
 1. We introduce PointConvFormer which modifies convolution by an attention weight computed from the  differences of local neighbourhood features. We further extend the PointConvFormer with a multi-head mechanism.
 2. We conduct thorough experiments on semantic segmentation tasks for both indoor and outdoor scenes, as well as  scene flow estimation from 3D point clouds on multiple datasets. Extensive ablation studies are conducted to study the properties and design choice of PointConvFormer.
 
-## Get Started
+## Installation
+
+### Environment
+1. Install dependencies
+
+```
+pip install -U ipdb scikit-learn matplotlib open3d easydict
+conda install pytorch==1.8.0 torchvision==0.9.0 torchaudio==0.8.0 cudatoolkit=10.1 -c pytorch
+pip install tensorboard timm termcolor tensorboardX
+```
+
+2. Compile cpp_wrappers
+
+```
+cd cpp_wrappers/
+sh compile_wrappers.sh
+cd ..
+```
+
+### Data Preparation
+
+#### ScanNetV2
+
 
 
 

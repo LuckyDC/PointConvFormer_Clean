@@ -197,7 +197,8 @@ class MultiHeadGuidanceQK(nn.Module):
             pe = self.pe_linear(pe)
             attn_score += pe
         # attn_score = attn_score.sigmoid() # b, n, nei_size, nh, 1
-        attn_score = F.softmax(attn_score, dim = 2)
+        # attn_score = F.softmax(attn_score, dim = 2)
+        attn_score = torch.sigmoid(attn_score)
 
         # prepare v 
         gathered_v = index_points(v.flatten(2, 3), nei_inds).view(B, N, nei_size, self.num_heads, -1)

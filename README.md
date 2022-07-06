@@ -37,7 +37,27 @@ cd ..
 
 #### ScanNetV2
 
+1. Please download the [ScanNetV2](http://www.scan-net.org/) dataset.
 
+2. Split the dataset file with `data_preparation/split_data_label_ply.py`. Please change the `split` and `data_path` accordingly.
+
+3. Preprocess the dataset with `data_preperation/prepare_data.py`. Please change the `basepath` accordingly.
+
+### Training
+
+1. Before training, please setup the `train_data_path` and `val_data_path` in `configWenxuanPCFDDPL5WarmUP.yaml`;
+
+2. You might also want to set the `model_name`, `experiment_dir` accordingly in `configWenxuanPCFDDPL5WarmUP.yaml`;
+
+3. If you use turibolt and would like to save the results to blobby, Please set the `save_to_blobby` to `True`, and `use_tensorboard` to `False` in `configWenxuanPCFDDPL5WarmUP.yaml`;
+
+4. Change other settings in `configWenxuanPCFDDPL5WarmUP.yaml` based on your experiments;
+
+5. To train a model with `n` gpus, change the `num_gpus` and `devices_ids` accordingly in `configWenxuanPCFDDPL5WarmUP.yaml`. Change the `--nproc_per_node` to be `n` in `run_distributed.sh`.
+
+6. ```sh run_distributedsh```
+
+### Evaluation
 
 
 

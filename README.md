@@ -59,5 +59,7 @@ cd ..
 
 ### Evaluation
 
+Please download the pretrain weights at [here](https://drive.google.com/file/d/1BShjM0PydlEX-bE7k3-fg2UBORpwUeWR/view?usp=sharing)
+
 
 

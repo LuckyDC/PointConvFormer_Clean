@@ -61,5 +61,9 @@ cd ..
 
 Please download the pretrain weights at [here](https://drive.google.com/file/d/1BShjM0PydlEX-bE7k3-fg2UBORpwUeWR/view?usp=sharing)
 
+Then, you can evaluate with the following comand:
 
+```
+python eval_ScanNet_PCF.py --config ./configWenxuanPCFDDPL5WarmUP.yaml --pretrain_path ./pretrain/[model_weights].pth --vote_num 1 --split validation
+```
 

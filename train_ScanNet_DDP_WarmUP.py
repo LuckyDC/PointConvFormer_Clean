@@ -29,7 +29,7 @@ except ModuleNotFoundError as err:
 from util.common_util import AverageMeter, intersectionAndUnionGPU
 from util.logger import get_logger 
 from util.lr import MultiStepWithWarmup, CosineAnnealingWarmupRestarts
-from model_architecture import VI_PointConvGuidedPENewAfterDropoutVI as VI_PointConv
+from model_architecture import VI_PointConvGuidedPENewAfterDropout as VI_PointConv
 import scannet_data_loader_color_DDP as scannet_data_loader
 
 def get_default_configs(cfg):

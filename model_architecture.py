@@ -2206,6 +2206,124 @@ class VI_PointConvGuidedPEQK(nn.Module):
         fc = self.fc1(sparse_feat)
         return fc
 
+class VI_PointConvGuidedPEQKV1(nn.Module):
+    def __init__(self, cfg):
+        super(VI_PointConvGuidedPEQKV1, self).__init__()
+
+        self.cfg = cfg
+        self.total_level = cfg.num_level
+        self.guided_level = cfg.guided_level
+
+        self.input_feat_dim = 6 if cfg.USE_XYZ else 3
+
+        self.relu = torch.nn.ReLU(inplace=True)
+
+        weightnet = [cfg.point_dim+9, 16] # 2 hidden layer
+
+        #pointwise_encode
+        self.selfpointconv = PointConv(self.input_feat_dim, cfg.base_dim, [32, 64], cfg, weightnet)
+        self.selfpointconv_res1 = PointConvResBlockPE(cfg.base_dim, cfg, weightnet)
+        self.selfpointconv_res2 = PointConvResBlockPE(cfg.base_dim, cfg, weightnet)
+
+        self.pointconv = nn.ModuleList()
+        self.pointconv_res = nn.ModuleList()
+
+        for i in range(1, self.total_level):
+            in_ch = cfg.feat_dim[i - 1]
+            out_ch = cfg.feat_dim[i]
+
+            self.pointconv.append(PointConvStridePE(in_ch, out_ch, cfg, weightnet))
+
+            if self.cfg.resblocks[i] == 0:
+                self.pointconv_res.append(nn.ModuleList([]))
+            else:
+                res_blocks = nn.ModuleList()
+                for _ in range(self.cfg.resblocks[i]):
+                    if i <= self.guided_level:
+                        res_blocks.append(PointConvResBlockPE(out_ch, cfg, weightnet))
+                    else:
+                        res_blocks.append(PointConvResBlockGuidedPEQK(out_ch, cfg, weightnet, cfg.num_heads))
+                self.pointconv_res.append(res_blocks)
+
+
+        self.pointdeconv = nn.ModuleList()
+        self.pointdeconv_res = nn.ModuleList()
+
+        for i in range(self.total_level - 2, -1, -1):
+            in_ch = cfg.feat_dim[i + 1]
+            out_ch = cfg.feat_dim[i]
+
+            mlp2 = [out_ch, out_ch]
+            self.pointdeconv.append(PointConvTransposePE(in_ch, out_ch, [], cfg, weightnet, mlp2))
+
+            if self.cfg.resblocks[i] == 0:
+                self.pointdeconv_res.append(nn.ModuleList([]))
+            else:
+                res_blocks = nn.ModuleList()
+                for _ in range(self.cfg.resblocks_back[i]):
+                    res_blocks.append(PointConvResBlockPE(out_ch, cfg, weightnet))
+                self.pointdeconv_res.append(res_blocks)
+
+        #pointwise_decode
+        self.fc1 = nn.Linear(cfg.base_dim, cfg.num_classes)
+
+    def forward(self, features, pointclouds, edges_self, edges_forward, edges_propagate, norms):
+        # import ipdb; ipdb.set_trace()
+
+        #encode pointwise info
+        features = torch.cat([features, pointclouds[0]], -1) if self.cfg.USE_XYZ else features
+        pointwise_feat = features
+
+        # level 1 conv
+        pointwise_feat = self.selfpointconv(pointclouds[0], pointclouds[0], pointwise_feat, edges_self[0], \
+                                            norms[0], norms[0])
+        pointwise_feat = self.selfpointconv_res1(pointclouds[0], pointwise_feat, edges_self[0], norms[0])
+        pointwise_feat = self.selfpointconv_res2(pointclouds[0], pointwise_feat, edges_self[0], norms[0])
+
+
+        feat_list = [pointwise_feat]
+        for i, pointconv in enumerate(self.pointconv):
+            dense_xyz = pointclouds[i]
+            sparse_xyz = pointclouds[i + 1]
+
+            dense_xyz_norm = norms[i]
+            sparse_xyz_norm = norms[i + 1]
+
+            dense_feat = feat_list[-1]
+            nei_inds = edges_forward[i]
+
+            sparse_feat = pointconv(dense_xyz, sparse_xyz, dense_feat, nei_inds, dense_xyz_norm, sparse_xyz_norm)
+
+            for res_block in self.pointconv_res[i]:
+                nei_inds = edges_self[i + 1]
+                sparse_feat = res_block(sparse_xyz, sparse_feat, nei_inds, sparse_xyz_norm)
+
+            feat_list.append(sparse_feat)
+            # print(sparse_feat.shape)
+
+        sparse_feat = feat_list[-1]
+        for i, pointdeconv in enumerate(self.pointdeconv):
+            cur_level = self.total_level - 2 - i
+            sparse_xyz = pointclouds[cur_level + 1]
+            dense_xyz = pointclouds[cur_level]
+            dense_feat = feat_list[cur_level]
+            nei_inds = edges_propagate[cur_level]
+
+            dense_xyz_norm = norms[cur_level]
+            sparse_xyz_norm = norms[cur_level + 1]
+
+            sparse_feat = pointdeconv(sparse_xyz, dense_xyz, sparse_feat, dense_feat, nei_inds, dense_xyz_norm, sparse_xyz_norm)
+
+            for res_block in self.pointdeconv_res[i]:
+                nei_inds = edges_self[cur_level]
+                sparse_feat = res_block(dense_xyz, sparse_feat, nei_inds, dense_xyz_norm)
+
+            feat_list[cur_level] = sparse_feat
+            # print(sparse_feat.shape)
+
+        fc = self.fc1(sparse_feat)
+        return fc
+
 
 class VI_PointConvGuidedPENewAfterDropout(nn.Module):
     def __init__(self, cfg):
